@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axiosInstance from "../api/axiosInstance";
+import axiosInstance from "../../api/axiosInstance";
 
 import CourseModal from "../../components/admin/CourseModal"; 
 
@@ -17,7 +17,7 @@ const AdminCourses = () => {
   const fetchCourses = async () => {
     const token = localStorage.getItem("accessToken");
     try {
-      const res = await axiosInstance.get("http://localhost:8000/api/courses/admin/courses/", {
+      const res = await axiosInstance.get("/courses/admin/courses/", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCourses(res.data);
@@ -42,14 +42,14 @@ const AdminCourses = () => {
     const token = localStorage.getItem("accessToken");
     try {
       if (modalMode === "Add") {
-        await axiosInstance.post("http://localhost:8000/api/courses/admin/courses/", formData, {
+        await axiosInstance.post("/courses/admin/courses/", formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
         });
       } else {
-        await axiosInstance.put(`http://localhost:8000/api/courses/admin/courses/${id}/`, formData, {
+        await axiosInstance.put(`/courses/admin/courses/${id}/`, formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
@@ -68,7 +68,7 @@ const AdminCourses = () => {
     const token = localStorage.getItem("accessToken");
     try {
       await axiosInstance.patch(
-        `http://localhost:8000/api/courses/admin/courses/${course.id}/`,
+        `/courses/admin/courses/${course.id}/`,
         { is_active: false },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -82,7 +82,7 @@ const AdminCourses = () => {
     const token = localStorage.getItem("accessToken");
     try {
       await axiosInstance.patch(
-        `http://localhost:8000/api/courses/admin/courses/${course.id}/`,
+        `/courses/admin/courses/${course.id}/`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );

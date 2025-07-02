@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axiosInstance from "../api/axiosInstance";
+import axiosInstance from "../../api/axiosInstance";
 
 import UserModal from "../../components/admin/UserModal"; 
 
@@ -17,7 +17,7 @@ const AdminTutors = () => {
   const fetchTutors = async () => {
     const token = localStorage.getItem("accessToken");
     try {
-      const res = await axiosInstance.get("http://localhost:8000/api/admin/instructors/", {
+      const res = await axiosInstance.get("/admin/instructors/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -44,11 +44,11 @@ const AdminTutors = () => {
     const token = localStorage.getItem("accessToken");
     try {
       if (modalMode === "Add") {
-        await axiosInstance.post("http://localhost:8000/api/admin/instructors/", data, {
+        await axiosInstance.post("/admin/instructors/", data, {
           headers: { Authorization: `Bearer ${token}` },
         });
       } else {
-        await axiosInstance.put(`http://localhost:8000/api/admin/instructors/${id}/`, data, {
+        await axiosInstance.put(`/admin/instructors/${id}/`, data, {
           headers: { Authorization: `Bearer ${token}` },
         });
       }
@@ -64,7 +64,7 @@ const AdminTutors = () => {
     const token = localStorage.getItem("accessToken");
     try {
       await axiosInstance.patch(
-        `http://localhost:8000/api/admin/instructors/${tutor.id}/`,
+        `/admin/instructors/${tutor.id}/`,
         { is_active: false },
         { headers: { Authorization: `Bearer ${token}` } }
       );

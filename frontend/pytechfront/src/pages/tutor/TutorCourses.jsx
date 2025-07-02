@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axiosInstance from "../api/axiosInstance";
+import axiosInstance from "../../api/axiosInstance";
 
 import CourseModal from "../../components/admin/CourseModal"; 
 
@@ -17,7 +17,7 @@ const InstructorCourses = () => {
   const fetchCourses = async () => {
     const token = localStorage.getItem("accessToken");
     try {
-      const res = await axiosInstance.get("http://localhost:8000/api/courses/instructor/courses/", {
+      const res = await axiosInstance.get("/courses/instructor/courses/", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCourses(res.data);
@@ -46,14 +46,14 @@ const InstructorCourses = () => {
     const token = localStorage.getItem("accessToken");
     try {
       if (modalMode === "Add") {
-        await axiosInstance.post("http://localhost:8000/api/courses/instructor/courses/", formData, {
+        await axiosInstance.post("/courses/instructor/courses/", formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
         });
       } else {
-        await axiosInstance.put(`http://localhost:8000/api/courses/instructor/courses/${id}/`, formData, {
+        await axiosInstance.put(`/courses/instructor/courses/${id}/`, formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axiosInstance from "../api/axiosInstance";
+import axiosInstance from "../../api/axiosInstance";
 
 
 const AdminCourseApproval = () => {
@@ -12,7 +12,7 @@ const AdminCourseApproval = () => {
   const fetchCourses = async () => {
     const token = localStorage.getItem("accessToken");
     try {
-      const res = await axiosInstance.get("http://localhost:8000/api/admin/courses/?status=submitted", {
+      const res = await axiosInstance.get("/admin/courses/?status=submitted", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCourses(res.data);
@@ -25,7 +25,7 @@ const AdminCourseApproval = () => {
     const token = localStorage.getItem("accessToken");
     try {
       await axiosInstance.patch(
-        `http://localhost:8000/api/admin/courses/${id}/`,
+        `/admin/courses/${id}/`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );

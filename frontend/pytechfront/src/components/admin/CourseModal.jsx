@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axiosInstance from "../api/axiosInstance";
+import axiosInstance from "../../api/axiosInstance";
 
 const CourseModal = ({ show, onClose, onSubmit, course, mode = "Add", hideStatus = false, defaultStatus = "submitted" }) => {
   const [formData, setFormData] = useState({
@@ -19,7 +19,7 @@ const CourseModal = ({ show, onClose, onSubmit, course, mode = "Add", hideStatus
     const fetchCategories = async () => {
       const token = localStorage.getItem("accessToken");
       try {
-        const res = await axiosInstance.get("http://localhost:8000/api/admin/categories/", {
+        const res = await axiosInstance.get("/admin/categories/", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCategories(res.data);

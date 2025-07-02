@@ -56,8 +56,9 @@ class CustomUser(AbstractBaseUser,PermissionsMixin):
 class EmailOTP(models.Model):
     user=models.OneToOneField(CustomUser,on_delete=models.CASCADE)
     otp=models.CharField(max_length=6)
-    created_at=models.DateTimeField()
+    created_at=models.DateTimeField(auto_now_add=True)
     expires_at=models.DateTimeField()
+    used = models.BooleanField(default=False)
 
     def is_expired(self):
         return timezone.now()>self.expires_at
@@ -65,8 +66,9 @@ class EmailOTP(models.Model):
         if not self.otp:
             self.otp=str(random.randint(100000,999999))
         if not self.expires_at:
-            self.expires_at=timezone.now()+timedelta(minutes=10)
+            self.expires_at=timezone.now()+timedelta(minutes=2)
         return super().save(*args,**kwargs)   
+    
     def __str__(self):
         return f"OTP for {self.user.email}"         
 

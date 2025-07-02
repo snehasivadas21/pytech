@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axiosInstance from "../api/axiosInstance";
+import axiosInstance from "../../api/axiosInstance";
 
 import ModuleModal from "../../components/tutor/ModuleModal";
 import LessonModal from "../../components/tutor/LessonModal";
@@ -24,14 +24,14 @@ const InstructorCourseContent = () => {
   }, []);
 
   const fetchModules = async () => {
-    const res = await axiosInstance.get(`http://localhost:8000/api/courses/modules/?course=${id}`, {
+    const res = await axiosInstance.get(`/courses/modules/?course=${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     setModules(res.data);
 
     const lessonMap = {};
     for (let mod of res.data) {
-      const lres = await axiosInstance.get(`http://localhost:8000/api/courses/lessons/?module=${mod.id}`, {
+      const lres = await axiosInstance.get(`/courses/lessons/?module=${mod.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       lessonMap[mod.id] = lres.data;
@@ -54,8 +54,8 @@ const InstructorCourseContent = () => {
   const handleSubmitModule = async (data, mid = null) => {
     try {
       const url = mid
-        ? `http://localhost:8000/api/courses/modules/${mid}/`
-        : "http://localhost:8000/api/courses/modules/";
+        ? `/courses/modules/${mid}/`
+        : "/courses/modules/";
       const method = mid ? axiosInstance.put : axiosInstance.post;
       const payload = { ...data, course: mid ? undefined : id };
       await method(url, payload, {
@@ -71,7 +71,7 @@ const InstructorCourseContent = () => {
   const handleDeleteModule = async (mid) => {
     if (!window.confirm("Are you sure to delete this module?")) return;
     try {
-      await axiosInstance.delete(`http://localhost:8000/api/courses/modules/${mid}/`, {
+      await axiosInstance.delete(`/courses/modules/${mid}/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchModules();
@@ -97,8 +97,8 @@ const InstructorCourseContent = () => {
   const handleSubmitLesson = async (data, lid = null) => {
     try {
       const url = lid
-        ? `http://localhost:8000/api/courses/lessons/${lid}/`
-        : "http://localhost:8000/api/courses/lessons/";
+        ? `/courses/lessons/${lid}/`
+        : "/courses/lessons/";
       const method = lid ? axiosInstance.put : axiosInstance.post;
 
       await method(url, data, {
@@ -114,7 +114,7 @@ const InstructorCourseContent = () => {
   const handleDeleteLesson = async (lid) => {
     if (!window.confirm("Are you sure to delete this lesson?")) return;
     try {
-      await axiosInstance.delete(`http://localhost:8000/api/courses/lessons/${lid}/`, {
+      await axiosInstance.delete(`/courses/lessons/${lid}/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchModules();

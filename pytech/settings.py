@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 from datetime import timedelta
 from decouple import config
+from django.conf import settings
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -41,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist', 
     'rest_framework',
     'rest_framework.authtoken', 
 
@@ -78,7 +79,7 @@ MIDDLEWARE = [
 SITE_ID = 1
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
+    "http://localhost:5173",  
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -138,6 +139,8 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': settings.SECRET_KEY,  
 }
 
 
@@ -178,8 +181,6 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # Default primary key field type
@@ -228,6 +229,10 @@ SOCIALACCOUNT_PROVIDERS = {
         }
     }
 }
+
+CELERY_BROKER_URL = "redis://localhost:6379/0"
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
 
 
 

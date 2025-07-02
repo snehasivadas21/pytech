@@ -3,13 +3,29 @@ from .models import CustomUser
 from django.contrib.auth import authenticate
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password=serializers.CharField(write_only=True,min_length=6)
+    password = serializers.CharField(write_only=True, min_length=6)
 
     class Meta:
-        model=CustomUser
-        fields=['email','username','password','role']
+        model = CustomUser
+        fields = ['email', 'username', 'password', 'role']
 
-    def create(self,validated_data):
+    def validate_email(self, value):
+        if CustomUser.objects.filter(email=value).exists():
+            raise serializers.ValidationError("This email is already registered.")
+        return value
+
+    def validate_username(self, value):
+        if CustomUser.objects.filter(username=value).exists():
+            raise serializers.ValidationError("This username is already taken.")
+        return value
+
+    def validate_role(self, value):
+        if value not in ['student', 'instructor']:
+            raise serializers.ValidationError("Invalid role selected.")
+        return value
+
+    def create(self, validated_data):
+        validated_data['role'] = validated_data.get('role', 'student')
         return CustomUser.objects.create_user(**validated_data)
     
 class LoginSerializer(serializers.Serializer):

@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import axiosInstance from "../api/axiosInstance";
-
+import { useContext, useState } from 'react';
+import axiosPublic from "../api/axiosPublic";
 import { useNavigate, Link } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -9,18 +9,20 @@ const Login = () => {
     email: '',
     password: '',
   });
-
+  
+  const {setAuth} = useContext(AuthContext)
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axiosInstance.post("http://localhost:8000/api/users/login/", form);
-
+      const res = await axiosPublic.post("/users/login/", form);
       const { access, refresh, username, role } = res.data;
 
       localStorage.setItem("accessToken", access);
       localStorage.setItem("refreshToken", refresh);
       localStorage.setItem("username", username);
       localStorage.setItem("role", role);
+
+      setAuth({access,refresh,username,role});
 
       if (role === "admin") {
         navigate("/admin/dashboard");

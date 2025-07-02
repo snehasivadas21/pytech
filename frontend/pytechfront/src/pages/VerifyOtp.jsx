@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import axiosInstance from "../api/axiosInstance";
-
+import axiosPublic from "../api/axiosPublic";
 import { useNavigate } from 'react-router-dom';
 
 const VerifyOTP = () => {
@@ -10,7 +9,7 @@ const VerifyOTP = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axiosInstance.post("http://localhost:8000/api/users/verify-otp/", form);
+      await axiosPublic.post("/users/verify-otp/", form);
       // alert("✅ Email verified! You can now log in.");
       navigate("/login");
     } catch (err) {

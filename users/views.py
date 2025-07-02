@@ -1,8 +1,5 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from django.core.mail import send_mail
-from django.conf import settings
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated,AllowAny
@@ -10,10 +7,13 @@ from rest_framework.permissions import IsAuthenticated,AllowAny
 from .models import CustomUser, EmailOTP
 from .serializers import RegisterSerializer, LoginSerializer
 from .permissions import IsVerifiedUser
+from .tasks import send_otp_email_task
 
 import random
 
 class RegisterView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
@@ -25,13 +25,8 @@ class RegisterView(APIView):
                 otp=otp_code,
                 created_at=timezone.now()
             )
-            send_mail(
-                subject='Verify your email',
-                message=f'Your OTP is {otp.otp}',
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=False
-            )
+            send_otp_email_task.delay(user.email,otp_code)
+            
             print(f"OTP for {user.email} is: {otp.otp}")
             return Response({"message": "User registered. Check your email for OTP."}, status=201)
         print("❌ Serializer errors:", serializer.errors)
@@ -39,6 +34,8 @@ class RegisterView(APIView):
 
 
 class VerifyOTPView(APIView):
+    permission_classes = [AllowAny]
+    
     def post(self, request):
         email = request.data.get('email')
         otp_input = request.data.get('otp')
@@ -49,13 +46,17 @@ class VerifyOTPView(APIView):
 
             if otp.is_expired():
                 return Response({'error': 'OTP expired'}, status=400)
+            
+            if otp.used:
+                return Response({'error':'OTP already user'},status=400)
 
             if otp.otp != otp_input:
                 return Response({'error': 'Invalid OTP'}, status=400)
 
             user.is_verified = True
             user.save()
-            otp.delete()
+            otp.used=True
+            otp.save()
 
             return Response({'message': 'Email verified successfully'}, status=200)
 
@@ -64,6 +65,26 @@ class VerifyOTPView(APIView):
 
         except EmailOTP.DoesNotExist:
             return Response({'error': 'OTP not found'}, status=404)
+        
+class ResendOTPView(APIView):
+    permission_classes=[AllowAny]
+
+    def post(self,request):
+        email = request.data.get("email")
+
+        try:
+            user=CustomUser.objects.get(email=email)
+
+            EmailOTP.objects.filter(user=user).delete()
+
+            otp_code=str(random.randint(1000000,999999))
+            otp=EmailOTP.objects.create(user=user,otp=otp_code)
+
+            send_otp_email_task.delay(user.email,otp_code)
+
+            return Response({"message":"OTP resent successfully."},status=200)
+        except CustomUser.DoesNotExist:
+            return Response({"error":"User not found"},status=404)       
 
 
 class LoginView(APIView):

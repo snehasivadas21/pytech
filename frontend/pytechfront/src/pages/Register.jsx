@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axiosInstance from "../api/axiosInstance";
+import axiosPublic from "../api/axiosPublic";
 
 import { useNavigate, Link } from 'react-router-dom';
 
@@ -15,7 +15,7 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axiosInstance.post("http://localhost:8000/api/users/register/", form);
+      await axiosPublic.post("/users/register/", form);
       // alert("✅ Registered! Check your email for OTP.");
       navigate("/verify-otp");
     } catch (err) {

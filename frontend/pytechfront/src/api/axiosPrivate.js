@@ -1,38 +1,25 @@
 import axios from "axios";
 
-const axiosInstance = axios.create({
+const axiosPrivate = axios.create({
   baseURL: "http://localhost:8000/api",
 });
 
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+axiosPrivate.interceptors.request.use((config) => {
+  const token = localStorage.getItem("accessToken");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
-axiosInstance.interceptors.response.use(
+axiosPrivate.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-
-    const excludedPaths = [
-      "/users/login/",
-      "/users/register/",
-      "/users/token/",
-      "/users/token/refresh/",
-      "/users/verify-otp/",
-    ];
-
     if (
       error.response &&
       error.response.status === 401 &&
-      !originalRequest._retry &&
-      !excludedPaths.some((path) => originalRequest.url.includes(path))
+      !originalRequest._retry
     ) {
       originalRequest._retry = true;
       try {
@@ -41,19 +28,16 @@ axiosInstance.interceptors.response.use(
         });
 
         localStorage.setItem("accessToken", res.data.access);
-        axiosInstance.defaults.headers.Authorization = `Bearer ${res.data.access}`;
         originalRequest.headers.Authorization = `Bearer ${res.data.access}`;
-
-        return axiosInstance(originalRequest);
+        return axiosPrivate(originalRequest);
       } catch (err) {
         localStorage.clear();
         window.location.href = "/login";
         return Promise.reject(err);
       }
     }
-
     return Promise.reject(error);
   }
 );
 
-export default axiosInstance;
+export default axiosPrivate;

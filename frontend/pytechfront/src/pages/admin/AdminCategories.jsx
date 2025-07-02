@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axiosInstance from "../api/axiosInstance";
+import axiosInstance from "../../api/axiosInstance";
 import CategoryModal from "../../components/admin/CategoryModal";
 
 const AdminCategories = () => {
@@ -16,7 +16,7 @@ const AdminCategories = () => {
   const fetchCategories = async () => {
     const token = localStorage.getItem("accessToken");
     try {
-      const res = await axiosInstance.get("http://localhost:8000/api/courses/categories/", {
+      const res = await axiosInstance.get("/courses/categories/", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCategories(res.data);
@@ -41,7 +41,7 @@ const AdminCategories = () => {
     const token = localStorage.getItem("accessToken");
     if (!window.confirm("Are you sure to delete this category?")) return;
     try {
-      await axiosInstance.delete(`http://localhost:8000/api/courses/categories/${id}/`, {
+      await axiosInstance.delete(`/courses/categories/${id}/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchCategories();
@@ -54,11 +54,11 @@ const AdminCategories = () => {
     const token = localStorage.getItem("accessToken");
     try {
       if (modalMode === "Add") {
-        await axiosInstance.post("http://localhost:8000/api/courses/categories/", formData, {
+        await axiosInstance.post("/courses/categories/", formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
       } else {
-        await axiosInstance.put(`http://localhost:8000/api/courses/categories/${id}/`, formData, {
+        await axiosInstance.put(`/courses/categories/${id}/`, formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
       }

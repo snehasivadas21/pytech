@@ -1,10 +1,11 @@
 import { Navigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
+import { useContext } from "react";
 
 const TutorRoute = ({ children }) => {
-  const role = localStorage.getItem("role");
-  const token = localStorage.getItem("accessToken");
+  const {auth} = useContext(AuthContext)
 
-  return token && (role === "instructor" || role === "admin")
+  return auth.access && (auth.role === "instructor" || auth.role === "admin")
     ? children
     : <Navigate to="/login" replace />;
 };
