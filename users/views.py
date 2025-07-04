@@ -5,9 +5,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated,AllowAny
 
 from .models import CustomUser, EmailOTP
-from .serializers import RegisterSerializer, LoginSerializer
+from .serializers import RegisterSerializer, LoginSerializer,StudentProfileSerializer
 from .permissions import IsVerifiedUser
 from .tasks import send_otp_email_task
+
+from courses.models import Enrollment,Course,LessonProgress,QuizSubmission
+from django.db.models import Avg
 
 import random
 
@@ -105,7 +108,37 @@ class LoginView(APIView):
         return Response(serializer.errors, status=401)
 
 
-class DashboardView(APIView):
-    permission_classes=[IsAuthenticated,IsVerifiedUser]
-    def get(self,request):
-        return Response({"message":f"Welcome,{request.user.username}! This is your dashboard"})
+class StudentDashboardView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        # Fetch enrolled courses
+        enrollments = Enrollment.objects.filter(student=user)
+        total_courses = enrollments.count()
+
+        # Course progress
+        total_lessons_completed = LessonProgress.objects.filter(student=user).count()
+
+        # Quiz stats
+        quiz_submissions = QuizSubmission.objects.filter(student=user)
+        total_quizzes_taken = quiz_submissions.count()
+        avg_score = quiz_submissions.aggregate(avg=Avg('score')).get('avg') or 0
+
+        # Response
+        data = {
+            "username": user.username,
+            "email": user.email,
+            "profile": {
+                "bio": getattr(user.student_profile, 'bio', ''),
+                "dob": getattr(user.student_profile, 'dob', ''),
+                "phone": getattr(user.student_profile, 'phone', ''),
+            },
+            "enrolled_courses": total_courses,
+            "lessons_completed": total_lessons_completed,
+            "quizzes_taken": total_quizzes_taken,
+            "average_quiz_score": round(avg_score, 2),
+        }
+
+        return Response(data)

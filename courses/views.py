@@ -1,8 +1,15 @@
 from rest_framework import viewsets,permissions
-from .models import Course,CourseCategory,Module,Lesson,Question,Quiz,Choice,QuizSubmission
-from .serializers import AdminCourseSerializer,InstructorCourseSerializer,CourseCategorySerializer,ModuleSerializer,LessonSerializer,QuizSerializer,QuestionSerializer,ChoiceSerializer,QuizSubmissionSerializer
-from users.permissions import IsInstructorUser,IsAdminUser
+from .models import (Course,CourseCategory,Module,Lesson,Question,Quiz,Choice,
+QuizSubmission,Enrollment,LessonProgress,CourseCertificate)
+
+from .serializers import (AdminCourseSerializer,InstructorCourseSerializer,CourseCategorySerializer,ModuleSerializer,LessonSerializer,QuizSerializer,QuestionSerializer,ChoiceSerializer,
+QuizSubmissionSerializer,EnrollmentSerializer,LessonProgressSerializer,QuizProgressSerializer,CourseCertificateSerializer)
+
+from users.permissions import IsInstructorUser,IsAdminUser,IsStudentUser
 from .tasks import send_course_status_email
+from django.utils import timezone
+from .utils import generate_certificate
+
 
 
 class AdminCourseViewSet(viewsets.ModelViewSet):
@@ -112,3 +119,59 @@ class QuizSubmissionViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(student=self.request.user)        
+
+class EnrollmentViewSet(viewsets.ModelViewSet):
+    queryset = Enrollment.objects.all()
+    serializer_class = EnrollmentSerializer
+    permission_classes = [permissions.IsAuthenticated,IsStudentUser]
+
+    def perform_create(self,serializer):
+        serializer.save(student=self.request.user)
+
+    def get_queryset(self):
+        return self.queryset.filter(student = self.request.user)
+    
+class LessonProgressViewSet(viewsets.ModelViewSet):
+    queryset = LessonProgress.objects.all()
+    serializer_class = LessonProgressSerializer
+    permission_classes = [permissions.IsAuthenticated,IsStudentUser]
+
+    def perform_create(self, serializer):
+        serializer.save(student=self.request.user, completed_at=timezone.now())
+
+    def issue_certificate_if_eligible(student, course):
+        lessons = Lesson.objects.filter(module__course=course)
+        lesson_ids = lessons.values_list('id', flat=True)
+        completed = LessonProgress.objects.filter(student=student, lesson_id__in=lesson_ids).count()
+
+        quizzes = Quiz.objects.filter(course=course)
+        passed_quizzes = QuizSubmission.objects.filter(
+            student=student, quiz__in=quizzes, passed=True
+        ).count()
+
+        if completed == lessons.count() and passed_quizzes == quizzes.count():
+            if not CourseCertificate.objects.filter(student=student, course=course).exists():
+                cert_file = generate_certificate(student.username, course.title)
+                CourseCertificate.objects.create(
+                    student=student,
+                    course=course,
+                    certificate_file=cert_file,
+                    certificate_id=uuid.uuid4().hex[:12]
+                )
+    
+    def get_queryset(self):
+        return self.queryset.filter(student=self.request.user) 
+    
+class StudentQuizProgressViewSet(viewsets.ModelViewSet):
+    serializer_class = QuizProgressSerializer
+    permission_classes = [permissions.IsAuthenticated,IsStudentUser]
+
+    def get_queryset(self):
+        return QuizSubmission.objects.filter(student=self.request.user)
+    
+class CertificateViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = CourseCertificateSerializer
+    permission_classes = [permissions.IsAuthenticated, IsStudentUser]
+
+    def get_queryset(self):
+        return CourseCertificate.objects.filter(student=self.request.user)

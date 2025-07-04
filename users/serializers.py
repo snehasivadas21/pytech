@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser
+from .models import CustomUser,StudentProfile
 from django.contrib.auth import authenticate
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -49,3 +49,8 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['id', 'email', 'username', 'role', 'is_active', 'is_verified','is_staff','date_joined']
+
+class StudentProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        models = StudentProfile
+        fields = ['bio','dob','phone']

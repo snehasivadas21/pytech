@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Course,CourseCategory,Module, Lesson,Choice,Quiz,Question,QuizSubmission,AnswerSubmission
+from .models import (Course,CourseCategory,Module, Lesson,Choice,Quiz,Question,
+QuizSubmission,AnswerSubmission,Enrollment,LessonProgress,CourseCertificate)
 
 class CourseCategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -109,4 +110,29 @@ class QuizSubmissionSerializer(serializers.ModelSerializer):
         submission.score = round(score, 2)
         submission.save()
 
-        return submission       
+        return submission   
+
+class EnrollmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Enrollment 
+        fields = ['id','student','course','enrolled_on','is_active']
+        read_only_fields = ['id','enrolled_on']  
+
+class LessonProgressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LessonProgress 
+        fields = ['id','student','lesson','completed','completed_at'] 
+        read_only_fields = ['id','student','completed_at']           
+
+
+class QuizProgressSerializer(serializers.ModelSerializer):
+    quiz_title = serializers.CharField(source='quiz.title', read_only=True)
+
+    class Meta:
+        model = QuizSubmission
+        fields = ['id', 'quiz_title', 'score', 'passed', 'submitted_at']
+
+class CourseCertificateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CourseCertificate
+        fields = ['id', 'course', 'certificate_file', 'issued_at', 'certificate_id']

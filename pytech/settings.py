@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'users',
     'adminpanel',
     'courses',
+    'payment',
 
     'django.contrib.sites',
     'allauth',
