@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils.text import slugify
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class CourseCategory(models.Model):
     name = models.CharField(max_length=255)
@@ -98,51 +99,6 @@ class Lesson(models.Model):
     def __str__(self):
         return f"{self.module.title} - {self.title}"
     
-class Quiz(models.Model):
-    module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name='quiz')
-    title = models.CharField(max_length=255)
-    instructions = models.TextField(blank=True)
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return f"Quiz for {self.lesson.title}"
-
-
-class Question(models.Model):
-    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='questions')
-    text = models.TextField()
-    order = models.PositiveIntegerField(default=0)
-
-    def __str__(self):
-        return self.text
-
-
-class Choice(models.Model):
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='choices')
-    text = models.CharField(max_length=255)
-    is_correct = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"{self.text} ({'Correct' if self.is_correct else 'Wrong'})"
-
-class QuizSubmission(models.Model):
-    student=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,limit_choices_to={'role':'student'})
-    quiz = models.ForeignKey(Quiz,on_delete=models.CASCADE)
-    submitted_at=models.DateTimeField(auto_now_add=True)
-    score=models.DecimalField(max_digits=5,decimal_places=2,default=0.0)
-    passed = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"{self.student.username} - {self.quiz.title} ({'Passed' if self.passed else 'Failed'})"
-    
-class AnswerSubmission(models.Model):
-    submission = models.ForeignKey(QuizSubmission,on_delete=models.CASCADE,related_name='answers')
-    question = models.ForeignKey(Question,on_delete=models.CASCADE)
-    selected_choice = models.ForeignKey(Choice,on_delete=models.SET_NULL,null=True,blank=True) 
-
-    def __str__(self):
-        return f"Answer for {self.question.text}"
-    
 class Enrollment(models.Model):
     student = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,limit_choices_to={'role':'student'})
     course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name='entrollments')
@@ -179,3 +135,27 @@ class CourseCertificate(models.Model):
 
     def __str__(self):
         return f"Certificate - {self.student.email} - {self.course.title}"
+
+class LessonResource(models.Model):
+    lesson = models.ForeignKey(Lesson,on_delete=models.CASCADE,related_name='resources')
+    title = models.CharField(max_length=255)
+    file = models.FileField(upload_to='lesson_resources/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title} ({self.lesson.title})"
+    
+class CourseReview(models.Model):
+    student = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
+    course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name='reviews')
+    rating = models.IntegerField(validators=[MinValueValidator(1),MaxValueValidator(5)])
+    review = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at= models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together =['student','course']
+
+    def __str__(self):
+        return f"{self.student.email} - {self.course.title} ({self.rating})"
+        

@@ -45,11 +45,14 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist', 
     'rest_framework',
     'rest_framework.authtoken', 
+    'channels',
 
     'users',
     'adminpanel',
     'courses',
     'payment',
+    'meet',
+    'livesession',
 
     'django.contrib.sites',
     'allauth',
@@ -87,7 +90,16 @@ CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = 'pytech.urls'
 
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
+ASGI_APPLICATION = 'pytech.asgi.application'
 
 TEMPLATES = [
     {

@@ -1,16 +1,14 @@
 from rest_framework import viewsets,permissions
-from .models import (Course,CourseCategory,Module,Lesson,Question,Quiz,Choice,
-QuizSubmission,Enrollment,LessonProgress,CourseCertificate)
+from .models import (Course,CourseCategory,Module,Lesson,Enrollment,LessonProgress,CourseCertificate,LessonResource,CourseReview)
 
-from .serializers import (AdminCourseSerializer,InstructorCourseSerializer,CourseCategorySerializer,ModuleSerializer,LessonSerializer,QuizSerializer,QuestionSerializer,ChoiceSerializer,
-QuizSubmissionSerializer,EnrollmentSerializer,LessonProgressSerializer,QuizProgressSerializer,CourseCertificateSerializer)
+from .serializers import (AdminCourseSerializer,InstructorCourseSerializer,CourseCategorySerializer,
+ModuleSerializer,LessonSerializer,EnrollmentSerializer,LessonProgressSerializer,CertificateSerializer,LessonResourceSerializer,
+CourseReviewSerializer)
 
 from users.permissions import IsInstructorUser,IsAdminUser,IsStudentUser
 from .tasks import send_course_status_email
 from django.utils import timezone
-from .utils import generate_certificate
-
-
+from .utils import issue_certificate_if_eligible
 
 class AdminCourseViewSet(viewsets.ModelViewSet):
     queryset=Course.objects.all().order_by('-created_at')
@@ -56,8 +54,6 @@ class ModuleViewSet(viewsets.ModelViewSet):
         instance.save()
         return Response({'message': 'Deleted successfully (soft delete)'}, status=status.HTTP_204_NO_CONTENT)
 
-
-
 class LessonViewSet(viewsets.ModelViewSet):
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
@@ -76,50 +72,6 @@ class LessonViewSet(viewsets.ModelViewSet):
         instance.save()
         return Response({'message': 'Deleted successfully (soft delete)'}, status=status.HTTP_204_NO_CONTENT)
 
-
-class QuizViewSet(viewsets.ModelViewSet):
-    serializer_class = QuizSerializer
-    permission_classes = [permissions.IsAuthenticated, IsInstructorUser]
-
-    def get_queryset(self):
-        return Quiz.objects.filter(module__course__instructor=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save()
-
-
-class QuestionViewSet(viewsets.ModelViewSet):
-    serializer_class = QuestionSerializer
-    permission_classes = [permissions.IsAuthenticated, IsInstructorUser]
-
-    def get_queryset(self):
-        return Question.objects.filter(quiz__module__course__instructor=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save()
-
-
-class ChoiceViewSet(viewsets.ModelViewSet):
-    serializer_class = ChoiceSerializer
-    permission_classes = [permissions.IsAuthenticated, IsInstructorUser]
-
-    def get_queryset(self):
-        return Choice.objects.filter(question__quiz__module__course__instructor=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save()
-
-class QuizSubmissionViewSet(viewsets.ModelViewSet):
-    queryset = QuizSubmission.objects.all()
-    serializer_class = QuizSubmissionSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return self.queryset.filter(student=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(student=self.request.user)        
-
 class EnrollmentViewSet(viewsets.ModelViewSet):
     queryset = Enrollment.objects.all()
     serializer_class = EnrollmentSerializer
@@ -137,41 +89,33 @@ class LessonProgressViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated,IsStudentUser]
 
     def perform_create(self, serializer):
-        serializer.save(student=self.request.user, completed_at=timezone.now())
-
-    def issue_certificate_if_eligible(student, course):
-        lessons = Lesson.objects.filter(module__course=course)
-        lesson_ids = lessons.values_list('id', flat=True)
-        completed = LessonProgress.objects.filter(student=student, lesson_id__in=lesson_ids).count()
-
-        quizzes = Quiz.objects.filter(course=course)
-        passed_quizzes = QuizSubmission.objects.filter(
-            student=student, quiz__in=quizzes, passed=True
-        ).count()
-
-        if completed == lessons.count() and passed_quizzes == quizzes.count():
-            if not CourseCertificate.objects.filter(student=student, course=course).exists():
-                cert_file = generate_certificate(student.username, course.title)
-                CourseCertificate.objects.create(
-                    student=student,
-                    course=course,
-                    certificate_file=cert_file,
-                    certificate_id=uuid.uuid4().hex[:12]
-                )
+        progress = serializer.save(student=self.request.user, completed_at=timezone.now())
+        issue_certificate_if_eligible(student = self.request.user,course=progress.lesson.module.course)
     
     def get_queryset(self):
         return self.queryset.filter(student=self.request.user) 
     
-class StudentQuizProgressViewSet(viewsets.ModelViewSet):
-    serializer_class = QuizProgressSerializer
-    permission_classes = [permissions.IsAuthenticated,IsStudentUser]
-
-    def get_queryset(self):
-        return QuizSubmission.objects.filter(student=self.request.user)
-    
 class CertificateViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = CourseCertificateSerializer
+    serializer_class = CertificateSerializer
     permission_classes = [permissions.IsAuthenticated, IsStudentUser]
 
     def get_queryset(self):
         return CourseCertificate.objects.filter(student=self.request.user)
+    
+class LessonResourceViewSet(viewsets.ModelViewSet):
+    serializer_class = LessonResourceSerializer
+    permission_classes = [permissions.IsAuthenticated,IsInstructorUser]
+
+    def get_queryset(self):
+        return LessonResource.objects.filter(lesson__module__course__instructor=self.request.user)   
+    
+
+class CourseReviewViewSet(viewsets.ModelViewSet):
+    serializer_class =  CourseReviewSerializer
+    permission_classes = [permissions.IsAuthenticated,IsStudentUser]
+
+    def get_queryset(self):
+        return CourseReview.objects.filter(student=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save() 

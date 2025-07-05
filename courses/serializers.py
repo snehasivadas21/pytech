@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from .models import (Course,CourseCategory,Module, Lesson,Choice,Quiz,Question,
-QuizSubmission,AnswerSubmission,Enrollment,LessonProgress,CourseCertificate)
+from .models import (Course,CourseCategory,Module, Lesson,Enrollment,LessonProgress,
+CourseCertificate,LessonResource,CourseReview)
+from payment.models import CoursePurchase
 
 class CourseCategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -46,71 +47,7 @@ class ModuleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Module
-        fields = '__all__'  
-
-class ChoiceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Choice
-        fields = ['id', 'text', 'is_correct']
-
-
-class QuestionSerializer(serializers.ModelSerializer):
-    choices = ChoiceSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Question
-        fields = ['id', 'quiz', 'text', 'order', 'choices']
-
-
-class QuizSerializer(serializers.ModelSerializer):
-    questions = QuestionSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Quiz
-        fields = ['id', 'module', 'title', 'is_active','instructions','questions']
-
-class AnswerSubmissionSerializer(serializers.ModelSerializer):
-    question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
-    selected_choice = serializers.PrimaryKeyRelatedField(queryset=Choice.objects.all())
-
-    class Meta:
-        model = AnswerSubmission
-        fields=['question','selected_choice']
-
-class QuizSubmissionSerializer(serializers.ModelSerializer):
-    answers = AnswerSubmissionSerializer(many=True, write_only=True)
-    score = serializers.DecimalField(max_digits=5, decimal_places=2, read_only=True)
-
-    class Meta:
-        model = QuizSubmission
-        fields = ['id', 'quiz', 'student', 'submitted_at', 'score', 'answers']
-        read_only_fields = ['student', 'submitted_at', 'score']
-
-    def create(self, validated_data):
-        answers_data = validated_data.pop('answers')
-        student = self.context['request'].user
-        quiz = validated_data['quiz']
-
-        submission = QuizSubmission.objects.create(student=student, quiz=quiz)
-
-        correct_count = 0
-        for ans in answers_data:
-            question = ans['question']
-            selected_choice = ans['selected_choice']
-            AnswerSubmission.objects.create(
-                submission=submission,
-                question=question,
-                selected_choice=selected_choice
-            )
-            if selected_choice.is_correct:
-                correct_count += 1
-
-        total_questions = quiz.questions.count()
-        score = (correct_count / total_questions) * 100 if total_questions > 0 else 0
-        submission.score = round(score, 2)
-        submission.save()
-
-        return submission   
+        fields = '__all__'   
 
 class EnrollmentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -124,15 +61,43 @@ class LessonProgressSerializer(serializers.ModelSerializer):
         fields = ['id','student','lesson','completed','completed_at'] 
         read_only_fields = ['id','student','completed_at']           
 
+class CertificateSerializer(serializers.ModelSerializer):
+    course_title = serializers.CharField(source='course.title', read_only=True)
 
-class QuizProgressSerializer(serializers.ModelSerializer):
-    quiz_title = serializers.CharField(source='quiz.title', read_only=True)
-
-    class Meta:
-        model = QuizSubmission
-        fields = ['id', 'quiz_title', 'score', 'passed', 'submitted_at']
-
-class CourseCertificateSerializer(serializers.ModelSerializer):
     class Meta:
         model = CourseCertificate
-        fields = ['id', 'course', 'certificate_file', 'issued_at', 'certificate_id']
+        fields = ['id', 'course', 'course_title', 'issued_at', 'certificate_file']
+
+class LessonResourceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LessonResource  
+        fields =['id','lesson','title','file','uploaded_at']
+
+    def validate_file(self, file):
+        if file.size > 10 * 1024 * 1024:  
+            raise serializers.ValidationError("File size too large (max 10MB).")
+        if not file.name.endswith(('.pdf', '.docx', '.pptx')):
+            raise serializers.ValidationError("Unsupported file type.")
+        return file
+    
+class CourseReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CourseReview
+        fields = ['id','course','rating','review','created_at']
+        read_only_fields = ['created_at']
+
+    def validate(self,data):
+        user = self.context['request'].user
+        course = data['course']
+
+        if not CoursePurchase.objects.filter(student = user,course=course,is_paid=True).exists():
+            raise serializers.ValidationError("You must purchase this course to leave a review")
+        return data
+    
+    def create(self,validated_data):
+        return CourseReview.objects.create(student = self.context['request'].user,**validated_data)
+    
+    
+    
+
+ 
