@@ -6,12 +6,9 @@ import Login from "./pages/Login";
 import Home from './pages/Home';
 import Layout from "./components/Layout";
 import AppRoutes from "./routes/AppRoutes";
-import AuthProvider from "./context/AuthContext";
 
 function App() {
   return (
-  <AuthProvider> 
-    <Router>
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<Home/>}/>
@@ -23,8 +20,6 @@ function App() {
         
         <Route path="/*" element={<AppRoutes />} />
       </Routes>
-    </Router>
-  </AuthProvider>  
   );
 }
 

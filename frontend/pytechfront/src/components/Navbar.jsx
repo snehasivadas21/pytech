@@ -52,7 +52,7 @@ const Navbar = () => {
 
         {/* Auth/Profile - Desktop */}
         <div className="relative hidden md:block" ref={dropdownRef}>
-          {auth.username ? (
+          {auth && auth.username ? (
             <div
               className="cursor-pointer w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white flex items-center justify-center font-extrabold"
               onClick={() => setOpenDropdown(!openDropdown)}
@@ -78,7 +78,7 @@ const Navbar = () => {
           )}
 
           {/* Dropdown */}
-          {openDropdown && auth.username && (
+          {openDropdown && auth && auth.username && (
             <div className="absolute right-0 mt-2 w-44 bg-white shadow-lg rounded-lg py-2 z-50">
               <div className="px-4 py-2 text-gray-700 font-medium capitalize">
                 {auth.username} - {auth.role}
@@ -125,7 +125,7 @@ const Navbar = () => {
 
           <hr />
 
-          {auth.username ? (
+          {auth && auth.username ? (
             <>
               <div className="text-gray-600 font-medium capitalize">
                 {auth.username} - {auth.role}

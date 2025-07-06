@@ -52,7 +52,10 @@ INSTALLED_APPS = [
     'courses',
     'payment',
     'meet',
+    'quiz',
     'livesession',
+    'chat',
+    'ai',
 
     'django.contrib.sites',
     'allauth',
@@ -247,5 +250,5 @@ CELERY_BROKER_URL = "redis://localhost:6379/0"
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 
-
+OPENAI_API_KEY = config('OPENAI_API_KEY')
 

@@ -9,8 +9,8 @@ class MockInterview(models.Model):
         ("missed","Missed"),
     ]
 
-    student = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE , limit_choices_to={"role":"student"})
-    instructor = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.SET_NULL,null=True,blank=True,limit_choices_to={'role':'instructor'})
+    student = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE , limit_choices_to={"role":"student"},related_name='interviews_as_student')
+    instructor = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.SET_NULL,null=True,blank=True,limit_choices_to={'role':'instructor'},related_name='interview_as_instructor')
     course = models.ForeignKey(Course,on_delete=models.CASCADE)
     scheduled_at = models.DateTimeField()
     meet_link = models.URLField(blank=True,null=True)

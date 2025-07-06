@@ -24,9 +24,12 @@ urlpatterns = [
     path('api/users/', include('users.urls')),
     path('api/admin/',include('adminpanel.urls')),
     path('api/courses/',include('courses.urls')),
-    path('api/payments/', include('payments.urls')),
+    path('api/payments/', include('payment.urls')),
     path('api/quiz/',include('quiz.urls')),
     path('api/meets/',include('meet.urls')),
+    path('api/livesession/',include('livesession.urls')),
+    path('api/chat/',include('chat.urls')),
+    path('api/ai/', include('ai.urls')),
 
     # dj-rest-auth
     path('auth/', include('dj_rest_auth.urls')),

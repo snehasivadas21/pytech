@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import axiosPublic from "../api/axiosPublic";
-
 import { useNavigate, Link } from 'react-router-dom';
 
 const Register = () => {
@@ -16,10 +15,8 @@ const Register = () => {
     e.preventDefault();
     try {
       await axiosPublic.post("/users/register/", form);
-      // alert("✅ Registered! Check your email for OTP.");
       navigate("/verify-otp");
     } catch (err) {
-      // alert("❌ Registration failed");
       console.error(err.response?.data);
     }
   };

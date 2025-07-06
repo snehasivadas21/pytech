@@ -10,19 +10,19 @@ const Login = () => {
     password: '',
   });
   
-  const {setAuth} = useContext(AuthContext)
+  const {loginUser} = useContext(AuthContext)
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       const res = await axiosPublic.post("/users/login/", form);
       const { access, refresh, username, role } = res.data;
 
-      localStorage.setItem("accessToken", access);
-      localStorage.setItem("refreshToken", refresh);
-      localStorage.setItem("username", username);
-      localStorage.setItem("role", role);
+      // localStorage.setItem("accessToken", access);
+      // localStorage.setItem("refreshToken", refresh);
+      // localStorage.setItem("username", username);
+      // localStorage.setItem("role", role);
 
-      setAuth({access,refresh,username,role});
+      loginUser(access,refresh);
 
       if (role === "admin") {
         navigate("/admin/dashboard");
@@ -33,10 +33,16 @@ const Login = () => {
       }
 
     } catch (err) {
-      console.error(err.response?.data || err.message);
+      console.error("Login error:", err.response?.data || err.message);
+      if (err.response?.status === 401) {
+        alert("Invalid email or password.");
+      } else if (err.response?.status === 500) {
+        alert("Server error. Please try again later.");
+      } else {
+        alert("Something went wrong.");
+      }
     }
   };
-
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">

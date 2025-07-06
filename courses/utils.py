@@ -1,6 +1,7 @@
 from django.utils import timezone
 from .models import CourseCertificate
-from .models import Lesson, LessonProgress,CoursePurchase
+from .models import Lesson, LessonProgress
+from payment.models import CoursePurchase
 from quiz.models import QuizSubmission
 
 def issue_certificate_if_eligible(student, course):
