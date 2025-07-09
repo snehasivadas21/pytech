@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from "../../api/axiosInstance";
 
-const CourseModal = ({ show, onClose, onSubmit, course, mode = "Add", hideStatus = false, defaultStatus = "submitted" }) => {
+const CourseModal = ({ show, onClose, onSubmit, course, mode = "Add", defaultStatus = "instructor" }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     category: '',
-    status: defaultStatus,
+    status: role === "admin" ? "approved" : "draft" ,
     is_active: true,
+    is_free: false,
+    price: 0.00,
     course_image: null,
   });
 
@@ -19,7 +21,7 @@ const CourseModal = ({ show, onClose, onSubmit, course, mode = "Add", hideStatus
     const fetchCategories = async () => {
       const token = localStorage.getItem("accessToken");
       try {
-        const res = await axiosInstance.get("/admin/categories/", {
+        const res = await axiosInstance.get("/courses/categories/", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCategories(res.data);
@@ -40,18 +42,22 @@ const CourseModal = ({ show, onClose, onSubmit, course, mode = "Add", hideStatus
         title: course.title || '',
         description: course.description || '',
         category: course.category || '',
-        status: course.status || defaultStatus,
+        status: course.status || (role === "admin" ? "approved" : "draft"),
         is_active: course.is_active ?? true,
+        if_free: course.is_free ?? false,
+        price: course.price ?? 0.00,
         course_image: null,
       });
-      setPreview(course.course_image ? `http://localhost:8000${course.course_image}` : null);
+      setPreview(course?.course_image ?? null);
     } else {
       setFormData({
         title: '',
         description: '',
         category: '',
-        status: defaultStatus,
+        status: role === "admin" ? "approved" : "draft",
         is_active: true,
+        is_free: false,
+        price: 0.00,
         course_image: null,
       });
       setPreview(null);
@@ -79,12 +85,14 @@ const CourseModal = ({ show, onClose, onSubmit, course, mode = "Add", hideStatus
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e, statusOverride = null) => {
     e.preventDefault();
     const submitData = new FormData();
     Object.entries(formData).forEach(([key, value]) => {
       if (value !== null) submitData.append(key, value);
     });
+    if (statusOverride) submitData.set("status", statusOverride);
+    if (formData.is_free) submitData.set("price", 0.00); // force free price
     onSubmit(submitData, course?.id);
   };
 
@@ -92,7 +100,7 @@ const CourseModal = ({ show, onClose, onSubmit, course, mode = "Add", hideStatus
     <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/30">
       <div className="bg-white p-6 rounded-lg shadow-lg w-[500px]">
         <h3 className="text-xl font-bold mb-4">{mode} Course</h3>
-        <form onSubmit={handleSubmit} className="space-y-4" encType="multipart/form-data">
+        <form onSubmit={(e) => handleSubmit(e)} className="space-y-4" encType="multipart/form-data">
           <input
             name="title"
             value={formData.title}
@@ -127,7 +135,7 @@ const CourseModal = ({ show, onClose, onSubmit, course, mode = "Add", hideStatus
             ))}
           </select>
 
-          {!hideStatus && (
+          {role === "admin" && (
             <select
               name="status"
               value={formData.status}
@@ -151,6 +159,29 @@ const CourseModal = ({ show, onClose, onSubmit, course, mode = "Add", hideStatus
             <span className="ml-2">Is Active</span>
           </label>
 
+          <label className="block">
+            <input
+              type="checkbox"
+              name="is_free"
+              checked={formData.is_free}
+              onChange={handleChange}
+            />
+            <span className="ml-2">Is Free</span>
+          </label>
+
+          {!formData.is_free && (
+            <input
+              type="number"
+              name="price"
+              value={formData.price}
+              onChange={handleChange}
+              placeholder="Course Price"
+              className="w-full border px-3 py-2 rounded"
+              min="0"
+              step="0.01"
+            />
+          )}
+
           <div>
             <label className="block mb-1 font-medium">Course Image</label>
             <input type="file" accept="image/*" onChange={handleImageChange} />
@@ -171,12 +202,33 @@ const CourseModal = ({ show, onClose, onSubmit, course, mode = "Add", hideStatus
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-purple-600 text-white rounded"
-            >
-              Save
-            </button>
+
+            {role === "admin" ? (
+              <button
+                type="submit"
+                className="px-4 py-2 bg-purple-600 text-white rounded"
+              >
+                Save
+              </button>
+            ) : (
+              <>
+                <button
+                  type="submit"
+                  onClick={(e) => handleSubmit(e, "draft")}
+                  className="px-4 py-2 bg-yellow-500 text-white rounded"
+                >
+                  Save as Draft
+                </button>
+                <button
+                  type="submit"
+                  onClick={(e) => handleSubmit(e, "submitted")}
+                  className="px-4 py-2 bg-green-600 text-white rounded"
+                >
+                  Submit for Review
+                </button>
+              </>
+
+            )}
           </div>
         </form>
       </div>

@@ -8,7 +8,7 @@ const getTitleFromPath = (path) => {
   return "Tutor Overview";
 };
 
-const AdminLayout = () => {
+const TutorLayout = () => {
   const location = useLocation();
 
   return (
@@ -24,4 +24,4 @@ const AdminLayout = () => {
   );
 };
 
-export default AdminLayout;
+export default TutorLayout;

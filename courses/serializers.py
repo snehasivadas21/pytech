@@ -27,7 +27,8 @@ class InstructorCourseSerializer(serializers.ModelSerializer):
             return super().update(instance, validated_data)    
 
 class AdminCourseSerializer(serializers.ModelSerializer):
-    instructor = serializers.StringRelatedField()
+    instructor_username = serializers.CharField(source='instructor.username', read_only=True)
+    # category_name = serializers.CharField(source='category.name', read_only=True)    
     category = CourseCategorySerializer()
 
     class Meta:

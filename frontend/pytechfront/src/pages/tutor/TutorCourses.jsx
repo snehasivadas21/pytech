@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../../api/axiosInstance";
-
 import CourseModal from "../../components/admin/CourseModal"; 
 
 const InstructorCourses = () => {
@@ -112,7 +111,7 @@ const InstructorCourses = () => {
                 <td className="px-6 py-4">
                   {course.course_image ? (
                     <img
-                      src={`http://localhost:8000${course.course_image}`}
+                      src={course.course_image}
                       alt="Course"
                       className="w-16 h-12 object-cover rounded"
                     />

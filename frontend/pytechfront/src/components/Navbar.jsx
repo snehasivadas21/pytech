@@ -4,7 +4,7 @@ import { AuthContext } from "../context/AuthContext";
 import { Menu, X } from "lucide-react";
 
 const Navbar = () => {
-  const { auth, logout } = useContext(AuthContext);
+  const { user, logoutUser } = useContext(AuthContext);
   const [openDropdown, setOpenDropdown] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const dropdownRef = useRef();
@@ -28,8 +28,8 @@ const Navbar = () => {
   }, [location]);
 
   const handleDashboard = () => {
-    if (auth.role === "admin") navigate("/admin/dashboard");
-    else if (auth.role === "instructor") navigate("/tutor/dashboard");
+    if (user?.role === "admin") navigate("/admin/dashboard");
+    else if (user?.role === "instructor") navigate("/tutor/dashboard");
     else navigate("/dashboard");
   };
 
@@ -52,13 +52,13 @@ const Navbar = () => {
 
         {/* Auth/Profile - Desktop */}
         <div className="relative hidden md:block" ref={dropdownRef}>
-          {auth && auth.username ? (
+          {user && user.username ? (
             <div
               className="cursor-pointer w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white flex items-center justify-center font-extrabold"
               onClick={() => setOpenDropdown(!openDropdown)}
-              title={auth.username}
+              title={user.username}
             >
-              {auth.username.charAt(0).toUpperCase()}
+              {user.username.charAt(0).toUpperCase()}
             </div>
           ) : (
             <div className="space-x-4">
@@ -78,10 +78,10 @@ const Navbar = () => {
           )}
 
           {/* Dropdown */}
-          {openDropdown && auth && auth.username && (
+          {openDropdown && user?.username && (
             <div className="absolute right-0 mt-2 w-44 bg-white shadow-lg rounded-lg py-2 z-50">
               <div className="px-4 py-2 text-gray-700 font-medium capitalize">
-                {auth.username} - {auth.role}
+                {user.username} - {user.role}
               </div>
               <hr />
               <button
@@ -91,7 +91,7 @@ const Navbar = () => {
                 Dashboard
               </button>
               <button
-                onClick={logout}
+                onClick={logoutUser}
                 className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
               >
                 Logout
@@ -125,10 +125,10 @@ const Navbar = () => {
 
           <hr />
 
-          {auth && auth.username ? (
+          {user && user.username ? (
             <>
               <div className="text-gray-600 font-medium capitalize">
-                {auth.username} - {auth.role}
+                {user.username} - {user.role}
               </div>
               <button
                 onClick={() => {
@@ -141,7 +141,7 @@ const Navbar = () => {
               </button>
               <button
                 onClick={() => {
-                  logout();
+                  logoutUser();
                   setMenuOpen(false);
                 }}
                 className="block w-full text-left text-red-600 hover:underline"

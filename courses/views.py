@@ -1,6 +1,5 @@
 from rest_framework import viewsets,permissions
 from .models import (Course,CourseCategory,Module,Lesson,Enrollment,LessonProgress,CourseCertificate,LessonResource,CourseReview)
-
 from .serializers import (AdminCourseSerializer,InstructorCourseSerializer,CourseCategorySerializer,
 ModuleSerializer,LessonSerializer,EnrollmentSerializer,LessonProgressSerializer,CertificateSerializer,LessonResourceSerializer,
 CourseReviewSerializer)
@@ -31,7 +30,7 @@ class InstructorCourseViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(instructor=self.request.user)
 
-class CourseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
+class CourseCategoryViewSet(viewsets.ModelViewSet):
     queryset = CourseCategory.objects.filter(is_active=True).order_by('name')
     serializer_class = CourseCategorySerializer
     permission_classes = [permissions.IsAuthenticated]        

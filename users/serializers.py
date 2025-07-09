@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import CustomUser,StudentProfile
 from django.contrib.auth import authenticate
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
@@ -54,3 +55,11 @@ class StudentProfileSerializer(serializers.ModelSerializer):
     class Meta:
         models = StudentProfile
         fields = ['bio','dob','phone']
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['username'] = user.username
+        token['role'] = user.role  
+        return token        

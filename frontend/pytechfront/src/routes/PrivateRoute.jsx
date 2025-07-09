@@ -3,7 +3,10 @@ import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 
 const PrivateRoute = ({ children }) => {
-  const { isAuthenticated } = useContext(AuthContext);
+  const { isAuthenticated, loading } = useContext(AuthContext);
+
+  if (loading) return null; // Prevent redirect before auth check
+
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 

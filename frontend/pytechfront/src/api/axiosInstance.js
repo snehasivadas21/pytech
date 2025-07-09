@@ -40,9 +40,12 @@ axiosInstance.interceptors.response.use(
           refresh: localStorage.getItem("refreshToken"),
         });
 
-        localStorage.setItem("accessToken", res.data.access);
-        axiosInstance.defaults.headers.Authorization = `Bearer ${res.data.access}`;
-        originalRequest.headers.Authorization = `Bearer ${res.data.access}`;
+        const newAccess = res.data.access;
+
+        // ✅ Update access token everywhere
+        localStorage.setItem("accessToken", newAccess);
+        axiosInstance.defaults.headers.Authorization = `Bearer ${newAccess}`;
+        originalRequest.headers.Authorization = `Bearer ${newAccess}`;
 
         return axiosInstance(originalRequest);
       } catch (err) {

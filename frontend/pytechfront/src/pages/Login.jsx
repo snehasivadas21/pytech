@@ -11,26 +11,14 @@ const Login = () => {
   });
   
   const {loginUser} = useContext(AuthContext)
+
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axiosPublic.post("/users/login/", form);
-      const { access, refresh, username, role } = res.data;
-
-      // localStorage.setItem("accessToken", access);
-      // localStorage.setItem("refreshToken", refresh);
-      // localStorage.setItem("username", username);
-      // localStorage.setItem("role", role);
+      const res = await axiosPublic.post("/users/token/", form);
+      const { access, refresh } = res.data;
 
       loginUser(access,refresh);
-
-      if (role === "admin") {
-        navigate("/admin/dashboard");
-      } else if (role === "instructor") {
-        navigate("/tutor/dashboard");
-      } else {
-        navigate("/"); 
-      }
 
     } catch (err) {
       console.error("Login error:", err.response?.data || err.message);

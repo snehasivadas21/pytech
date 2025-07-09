@@ -2,10 +2,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated,AllowAny
 
 from .models import CustomUser, EmailOTP
-from .serializers import RegisterSerializer, LoginSerializer,StudentProfileSerializer
+from .serializers import RegisterSerializer, LoginSerializer,CustomTokenObtainPairSerializer
 from .permissions import IsInstructorUser
 from .tasks import send_otp_email_task
 
@@ -168,3 +169,6 @@ class InstructorDashboardView(APIView):
             "total_quizzes" : total_quizzes
 
         })
+    
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer    

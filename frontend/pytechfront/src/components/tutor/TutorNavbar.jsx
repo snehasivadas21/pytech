@@ -1,23 +1,12 @@
-import { useEffect, useState, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState, useRef, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext";
 
 const TutorNavbar = ({ title }) => {
+  const {user,logoutUser} = useContext(AuthContext)
   const navigate = useNavigate();
-  const location = useLocation();
-  const dropdownRef = useRef(null);
-
-  const [user, setUser] = useState(null);
+  const dropdownRef = useRef();
   const [openDropdown, setOpenDropdown] = useState(false);
-
-  useEffect(() => {
-    const username = localStorage.getItem("username");
-    const role = localStorage.getItem("role");
-    if (username && role) {
-      setUser({ username, role });
-    } else {
-      setUser(null);
-    }
-  }, [location]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -28,12 +17,6 @@ const TutorNavbar = ({ title }) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const handleLogout = () => {
-    localStorage.clear();
-    setUser(null);
-    navigate("/login"); 
-  };
 
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-5 flex items-center justify-between shadow-sm sticky top-0 z-50">
@@ -52,7 +35,7 @@ const TutorNavbar = ({ title }) => {
         </div>
 
         <div className="relative" ref={dropdownRef}>
-          {user && (
+          {user?.username && (
             <>
               <div
                 className="cursor-pointer w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white flex items-center justify-center font-extrabold"
@@ -68,7 +51,7 @@ const TutorNavbar = ({ title }) => {
                     {user.username} - {user.role}
                   </div>
                   <button
-                    onClick={handleLogout}
+                    onClick={logoutUser}
                     className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                   >
                     Logout
