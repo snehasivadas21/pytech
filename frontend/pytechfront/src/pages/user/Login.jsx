@@ -1,29 +1,40 @@
-import { useState } from 'react';
-import axiosPublic from "../api/axiosPublic";
+import { useContext, useState } from 'react';
+import axiosPublic from "../../api/axiosPublic";
 import { useNavigate, Link } from 'react-router-dom';
+import { AuthContext } from '../../context/AuthContext';
 
-const Register = () => {
+const Login = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     email: '',
-    username: '',
     password: '',
-    role: 'student',
   });
+  
+  const {loginUser} = useContext(AuthContext)
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await axiosPublic.post("/users/register/", form);
-      navigate("/verify-otp");
+      const res = await axiosPublic.post("/users/token/", form);
+      const { access, refresh } = res.data;
+
+      loginUser(access,refresh);
+
     } catch (err) {
-      console.error(err.response?.data);
+      console.error("Login error:", err.response?.data || err.message);
+      if (err.response?.status === 401) {
+        alert("Invalid email or password.");
+      } else if (err.response?.status === 500) {
+        alert("Server error. Please try again later.");
+      } else {
+        alert("Something went wrong.");
+      }
     }
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-xl p-10 bg-white rounded-2xl shadow-md">
+      <div className="w-full max-w-xl p-8 bg-white rounded-2xl shadow-md">
         <div className="block md:block">
           <img
             src="/AdobeStock_416743421_Preview.jpeg"
@@ -31,23 +42,15 @@ const Register = () => {
             className="w-full h-full object-cover"
           />
         </div>
-        <h2 className="text-2xl font-bold text-center mb-2">Create your account</h2>
-        <p className="text-center text-sm text-gray-500 mb-6">Join us and start learning today</p>
+        <h2 className="text-2xl font-bold text-center mb-2">Welcome Back</h2>
+        <p className="text-center text-sm text-gray-500 mb-6">Login to continue</p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-4">
           <input
             type="email"
             placeholder="Email"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
-            className="w-full p-2 border border-gray-300 rounded-md"
-            required
-          />
-          <input
-            type="text"
-            placeholder="Username"
-            value={form.username}
-            onChange={(e) => setForm({ ...form, username: e.target.value })}
             className="w-full p-2 border border-gray-300 rounded-md"
             required
           />
@@ -59,25 +62,16 @@ const Register = () => {
             className="w-full p-2 border border-gray-300 rounded-md"
             required
           />
-          <select
-            value={form.role}
-            onChange={(e) => setForm({ ...form, role: e.target.value })}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          >
-            <option value="student">Student</option>
-            <option value="instructor">Instructor</option>
-          </select>
-
           <button
             type="submit"
             className="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 transition"
           >
-            Register
+            Login
           </button>
         </form>
 
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-500 mb-2">Or continue with</p>
+          <p className="text-sm text-gray-500 mb-2">Or login with</p>
           <button
             onClick={() =>
               window.location.href =
@@ -96,9 +90,9 @@ const Register = () => {
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link to="/login" className="text-blue-600 hover:underline">
-              Sign in
+            Don't have an account?{' '}
+            <Link to="/register" className="text-blue-600 hover:underline">
+              Register
             </Link>
           </p>
         </div>
@@ -107,4 +101,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default Login;

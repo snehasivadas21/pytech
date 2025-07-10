@@ -1,4 +1,4 @@
-from rest_framework import viewsets,permissions
+from rest_framework import viewsets,permissions,serializers
 from .models import (Course,CourseCategory,Module,Lesson,Enrollment,LessonProgress,CourseCertificate,LessonResource,CourseReview)
 from .serializers import (AdminCourseSerializer,InstructorCourseSerializer,CourseCategorySerializer,
 ModuleSerializer,LessonSerializer,EnrollmentSerializer,LessonProgressSerializer,CertificateSerializer,LessonResourceSerializer,
@@ -33,7 +33,7 @@ class InstructorCourseViewSet(viewsets.ModelViewSet):
 class CourseCategoryViewSet(viewsets.ModelViewSet):
     queryset = CourseCategory.objects.filter(is_active=True).order_by('name')
     serializer_class = CourseCategorySerializer
-    permission_classes = [permissions.IsAuthenticated]        
+    permission_classes = [permissions.AllowAny]        
 
 class ModuleViewSet(viewsets.ModelViewSet):
     queryset = Module.objects.all()
@@ -76,7 +76,9 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
     serializer_class = EnrollmentSerializer
     permission_classes = [permissions.IsAuthenticated,IsStudentUser]
 
-    def perform_create(self,serializer):
+    def perform_create(self, serializer):
+        if Enrollment.objects.filter(student=self.request.user, course=serializer.validated_data['course']).exists():
+            raise serializers.ValidationError("You are already enrolled in this course.")
         serializer.save(student=self.request.user)
 
     def get_queryset(self):

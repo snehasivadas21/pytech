@@ -1,19 +1,26 @@
 from rest_framework.views import APIView
+from rest_framework import viewsets,status
 from rest_framework.response import Response
+from rest_framework import generics,permissions,filters
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated,AllowAny
+from rest_framework.decorators import action
 
-from .models import CustomUser, EmailOTP
-from .serializers import RegisterSerializer, LoginSerializer,CustomTokenObtainPairSerializer
+from .models import CustomUser, EmailOTP,StudentProfile
+from .serializers import RegisterSerializer, LoginSerializer,CustomTokenObtainPairSerializer,StudentProfileSerializer
 from .permissions import IsInstructorUser
 from .tasks import send_otp_email_task
 
 from courses.models import Enrollment,Course,LessonProgress
+from courses.serializers import AdminCourseSerializer
 from quiz.models import QuizSubmission,Quiz
 from payment.models import CoursePurchase
 from django.db.models import Avg,Sum
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.parsers import MultiPartParser,FormParser
+
 
 import random
 
@@ -117,6 +124,20 @@ class StudentDashboardView(APIView):
     def get(self, request):
         user = request.user
 
+        profile_data = {
+            "bio": "",
+            "dob": "",
+            "phone": ""
+        }
+
+        if hasattr(user, 'student_profile'):
+            profile = user.student_profile
+            profile_data = {
+                "bio": profile.bio or "",
+                "dob": profile.dob or "",
+                "phone": profile.phone or "",
+            }
+
         # Fetch enrolled courses
         enrollments = Enrollment.objects.filter(student=user)
         total_courses = enrollments.count()
@@ -133,11 +154,7 @@ class StudentDashboardView(APIView):
         data = {
             "username": user.username,
             "email": user.email,
-            "profile": {
-                "bio": getattr(user.student_profile, 'bio', ''),
-                "dob": getattr(user.student_profile, 'dob', ''),
-                "phone": getattr(user.student_profile, 'phone', ''),
-            },
+            "profile": profile_data,
             "enrolled_courses": total_courses,
             "lessons_completed": total_lessons_completed,
             "quizzes_taken": total_quizzes_taken,
@@ -172,3 +189,37 @@ class InstructorDashboardView(APIView):
     
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer    
+
+class ApprovedCourseListView(generics.ListAPIView):
+    queryset = Course.objects.filter(status = 'approved')
+    serializer_class = AdminCourseSerializer
+    permission_classes = [permissions.AllowAny]
+    filter_backends = [DjangoFilterBackend,filters.SearchFilter,filters.OrderingFilter]
+    filterset_fields = ['category','is_free']
+    search_fields = ['title','description']
+    ordering_fields = ['price','title']
+    ordering = ['title']
+
+class ApprovedCourseDetailView(generics.RetrieveAPIView):
+    queryset = Course.objects.filter(status = 'approved')
+    serializer_class = AdminCourseSerializer
+    permission_classes =[permissions.AllowAny]
+    
+class StudentProfileViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    @action(detail=False, methods=['get', 'put'], url_path='me')
+    def me(self, request):
+        profile, _ = StudentProfile.objects.get_or_create(user=request.user)
+
+        if request.method == 'GET':
+            serializer = StudentProfileSerializer(profile)
+            return Response(serializer.data)
+
+        elif request.method == 'PUT':
+            serializer = StudentProfileSerializer(profile, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"detail": "Profile updated successfully"}, status=200)
+            return Response(serializer.errors, status=400)

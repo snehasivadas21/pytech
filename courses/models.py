@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.utils.text import slugify
 from django.core.validators import MinValueValidator, MaxValueValidator
+from cloudinary.models import CloudinaryField
 
 class CourseCategory(models.Model):
     name = models.CharField(max_length=255)
@@ -45,7 +46,7 @@ class Course(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='submitted')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    course_image = models.ImageField(upload_to='course_image/', blank=True, null=True)
+    course_image = CloudinaryField('course_image', blank=True, null=True)
     rating = models.DecimalField(max_digits=2, decimal_places=1, default=0.0)
     price = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
     is_free = models.BooleanField(default=False)

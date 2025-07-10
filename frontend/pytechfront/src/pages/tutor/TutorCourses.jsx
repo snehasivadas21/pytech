@@ -45,14 +45,14 @@ const InstructorCourses = () => {
     const token = localStorage.getItem("accessToken");
     try {
       if (modalMode === "Add") {
-        await axiosInstance.post("/courses/instructor/courses/", formData, {
+        await axiosInstance.post("courses/instructor/courses/", formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
         });
       } else {
-        await axiosInstance.put(`/courses/instructor/courses/${id}/`, formData, {
+        await axiosInstance.put(`courses/instructor/courses/${id}/`, formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
@@ -95,6 +95,9 @@ const InstructorCourses = () => {
             <tr>
               <th className="px-6 py-3">ID</th>
               <th className="px-6 py-3">Title</th>
+              <th className="px-6 py-3">Category</th>
+              <th className="px-6 py-3">Free/Paid</th>
+              <th className="px-6 py-3">Price</th>
               <th className="px-6 py-3">Status</th>
               <th className="px-6 py-3">Active</th>
               <th className="px-6 py-3">Image</th>
@@ -106,7 +109,24 @@ const InstructorCourses = () => {
               <tr key={course.id}>
                 <td className="px-6 py-4">{course.id}</td>
                 <td className="px-6 py-4">{course.title}</td>
-                <td className="px-6 py-4 capitalize">{course.status}</td>
+                <td className="px-6 py-4">{course.category_name || course.category}</td>
+                <td className="px-6 py-4">{course.is_free ? "Free" : "Paid"}</td>
+                <td className="px-6 py-4">
+                  {course.is_free ? "-" : `₹${course.price}`}
+                </td>
+                <td className="px-6 py-4 capitalize">
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      course.status === "approved"
+                        ? "bg-green-100 text-green-700"
+                        : course.status === "rejected"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}
+                  >
+                    {course.status}
+                  </span>
+                </td>
                 <td className="px-6 py-4">{course.is_active ? "Yes" : "No"}</td>
                 <td className="px-6 py-4">
                   {course.course_image ? (

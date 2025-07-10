@@ -1,14 +1,22 @@
 import { Routes, Route } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Layouts & Pages
 import Layout from "./components/Layout";
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import VerifyOtp from "./pages/VerifyOtp";
-import GoogleCallback from "./pages/GoogleCallback";
-import Dashboard from "./pages/Dashboard";
-import NotFound from "./pages/NotFound";
+import Home from "./pages/user/Home";
+import Login from "./pages/user/Login";
+import Register from "./pages/user/Register";
+import VerifyOtp from "./pages/user/VerifyOtp";
+import GoogleCallback from "./pages/user/GoogleCallback";
+import Dashboard from "./pages/student/Dashboard";
+import NotFound from "./pages/user/NotFound";
+import CourseListPage from "./pages/user/Courses";
+import CourseDetailPage from "./pages/user/CourseDetailPage";
+import About from "./pages/user/About"
+import MyCourse from "./pages/student/MyCourses"
+import StudentProfile from "./pages/student/StudentProfile"
+import StudentQuiz from "./pages/student/StudentQuiz"
 
 // Admin
 import AdminLayout from "./components/admin/AdminLayout";
@@ -28,13 +36,31 @@ import TutorCourses from "./pages/tutor/TutorCourses";
 import PrivateRoute from "./routes/PrivateRoute";
 import AdminRoute from "./routes/AdminRoute";
 import TutorRoute from "./routes/TutorRoute";
+import StudentLayout from "./components/student/StudentLayout";
+
+
 
 function App() {
   return (
+  <>
     <Routes>
-      {/* Public Home + Layout */}
       <Route element={<Layout />}>
         <Route index element={<Home />} />
+        <Route path = "/courses" element={<CourseListPage/>}/>
+        <Route path = "/courses/:id" element={<CourseDetailPage/>}/>
+        <Route path="/about" element={<About/>} />
+
+        {/* Protected Dashboard */}
+        <Route path="/student" element={
+          <PrivateRoute>
+            <StudentLayout/>
+          </PrivateRoute>
+        }>
+          <Route path="dashboard" element={<Dashboard/>}/>
+          <Route path="courses" element={<MyCourse/>}/>
+          <Route path="profile" element={<StudentProfile/>} />
+          <Route path="quizzes" element={<StudentQuiz/>} />
+        </Route>
       </Route>
 
       {/* Auth Pages */}
@@ -42,13 +68,6 @@ function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/verify-otp" element={<VerifyOtp />} />
       <Route path="/google/callback" element={<GoogleCallback />} />
-
-      {/* Protected Dashboard */}
-      <Route path="/dashboard" element={
-        <PrivateRoute>
-          <Dashboard />
-        </PrivateRoute>
-      } />
 
       {/* Admin Section */}
       <Route path="/admin" element={
@@ -79,6 +98,8 @@ function App() {
       {/* Catch All */}
       <Route path="*" element={<NotFound />} />
     </Routes>
+    <ToastContainer position="top-right" autoClose={3000}/>
+  </>  
   );
 }
 

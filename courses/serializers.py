@@ -9,27 +9,40 @@ class CourseCategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class InstructorCourseSerializer(serializers.ModelSerializer):
+    course_image = serializers.ImageField(required=False, use_url=True)
+    category_name = serializers.CharField(source='category.name', read_only=True)
+    category = serializers.PrimaryKeyRelatedField(queryset=CourseCategory.objects.all())
+
     class Meta:
         model = Course
-        exclude = ['slug','rating','is_published','created_at','instructor','status'] 
+        exclude = ['slug','rating','is_published','created_at','instructor'] 
         extra_kwargs = {
             'slug': {'read_only': True}
         }
 
-        def create(self,validated_data):
-            validated_data['instructor']=self.context['request'].user
-            validated_data['status']='submitted'
-            return super().create(validated_data)
+    def get_category_name(self, obj):
+        return {
+            "id": obj.category.id,
+            "name": obj.category.name
+        }    
 
-        def update(self, instance, validated_data):
-            validated_data.pop('instructor', None)
-            validated_data.pop('status', None)
-            return super().update(instance, validated_data)    
+    def create(self,validated_data):
+        validated_data['instructor']=self.context['request'].user
+        validated_data['status']='submitted'
+        validated_data.pop('slug',None)
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data.pop('instructor', None)
+        validated_data.pop('status', None)
+        validated_data.pop('slug', None)
+        return super().update(instance, validated_data)    
 
 class AdminCourseSerializer(serializers.ModelSerializer):
     instructor_username = serializers.CharField(source='instructor.username', read_only=True)
-    # category_name = serializers.CharField(source='category.name', read_only=True)    
-    category = CourseCategorySerializer()
+    category_name = serializers.CharField(source='category.name', read_only=True)    
+    course_image = serializers.ImageField(required=False, use_url=True)
+    category = serializers.PrimaryKeyRelatedField(queryset=CourseCategory.objects.all())
 
     class Meta:
         model=Course

@@ -12,7 +12,7 @@ const AdminCourseApproval = () => {
   const fetchCourses = async () => {
     const token = localStorage.getItem("accessToken");
     try {
-      const res = await axiosInstance.get("/admin/courses/?status=submitted", {
+      const res = await axiosInstance.get("courses/admin/courses/?status=submitted", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCourses(res.data);
@@ -25,7 +25,7 @@ const AdminCourseApproval = () => {
     const token = localStorage.getItem("accessToken");
     try {
       await axiosInstance.patch(
-        `/admin/courses/${id}/`,
+        `courses/admin/courses/${id}/`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -53,7 +53,7 @@ const AdminCourseApproval = () => {
             {courses.map((course) => (
               <tr key={course.id}>
                 <td className="px-6 py-3">{course.title}</td>
-                <td className="px-6 py-3">{course.instructor_name || "N/A"}</td>
+                <td className="px-6 py-3">{course.instructor_username || "N/A"}</td>
                 <td className="px-6 py-3">{course.category_name || course.category}</td>
                 <td className="px-6 py-3">{course.status}</td>
                 <td className="px-6 py-3 space-x-2">

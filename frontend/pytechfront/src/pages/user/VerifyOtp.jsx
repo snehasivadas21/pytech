@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axiosPublic from "../api/axiosPublic";
+import axiosPublic from "../../api/axiosPublic";
 import { useNavigate } from 'react-router-dom';
 
 const VerifyOTP = () => {

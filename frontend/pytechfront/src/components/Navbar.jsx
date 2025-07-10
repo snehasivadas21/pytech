@@ -30,7 +30,7 @@ const Navbar = () => {
   const handleDashboard = () => {
     if (user?.role === "admin") navigate("/admin/dashboard");
     else if (user?.role === "instructor") navigate("/tutor/dashboard");
-    else navigate("/dashboard");
+    else navigate("/student/dashboard");
   };
 
   return (
@@ -43,9 +43,9 @@ const Navbar = () => {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex space-x-6 items-center">
-          <Link to="/" className="text-gray-600 hover:text-blue-600 font-bold">Home</Link>
-          <Link to="/about" className="text-gray-600 hover:text-blue-600 font-bold">About</Link>
+          <Link to="/" className="text-gray-600 hover:text-blue-600 font-bold">Home</Link> 
           <Link to="/courses" className="text-gray-600 hover:text-blue-600 font-bold">Courses</Link>
+          <Link to="/about" className="text-gray-600 hover:text-blue-600 font-bold">About</Link>
           <Link to="/services" className="text-gray-600 hover:text-blue-600 font-bold">Services</Link>
           <Link to="/certification" className="text-gray-600 hover:text-blue-600 font-bold">Certification</Link>
         </div>

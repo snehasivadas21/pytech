@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser,BaseUserManager,Permissi
 import random
 from django.utils import timezone
 from datetime import timedelta
+from cloudinary.models import CloudinaryField
 
 # Create your models here.
 class CustomUserManager(BaseUserManager):
@@ -74,7 +75,7 @@ class EmailOTP(models.Model):
 
 class StudentProfile(models.Model):
     user = models.OneToOneField(CustomUser,on_delete=models.CASCADE,related_name='student_profile')
-    profile_picture =  models.ImageField(upload_to='profile_pics/',blank=True,null=True) 
+    profile_picture =  CloudinaryField('profile_picture',blank=True,null=True) 
     bio = models.TextField(blank=True)
     dob = models.DateField(blank=True,null=True)
     phone = models.CharField(max_length=15,blank=True)

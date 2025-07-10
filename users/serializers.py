@@ -52,9 +52,10 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'email', 'username', 'role', 'is_active', 'is_verified','is_staff','date_joined']
 
 class StudentProfileSerializer(serializers.ModelSerializer):
+    profile_picture = serializers.ImageField(required=False, use_url=True)
     class Meta:
-        models = StudentProfile
-        fields = ['bio','dob','phone']
+        model = StudentProfile
+        fields = ['bio','dob','phone','profile_picture']
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
