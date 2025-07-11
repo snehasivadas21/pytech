@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import CourseModal from "../../components/admin/CourseModal"; 
+import { Link } from "react-router-dom";
 
 const InstructorCourses = () => {
   const [courses, setCourses] = useState([]);
@@ -139,13 +140,21 @@ const InstructorCourses = () => {
                     "No Image"
                   )}
                 </td>
-                <td className="px-6 py-4">
+                <td className="flex justify-between px-6 py-4">
                   <button
                     onClick={() => handleEdit(course)}
-                    className="text-blue-600 hover:underline"
+                    className="text-purple-600 hover:underline"
                   >
                     Edit
                   </button>
+                  {course.status !== "rejected" && (
+                    <Link
+                      to={`/tutor/courses/${course.id}/content`}
+                      className="text-purple-600 hover:underline"
+                    >
+                      Manage Content
+                    </Link>
+                  )}
                 </td>
               </tr>
             ))}

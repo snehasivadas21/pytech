@@ -1,7 +1,9 @@
 from rest_framework import serializers
 from .models import Order,CoursePurchase
+from courses.serializers import AdminCourseSerializer
 
 class CoursePurchaseSerializer(serializers.ModelSerializer):
+    course = AdminCourseSerializer(read_only=True)
     class Meta:
         model = CoursePurchase
         fields = ['id', 'course', 'is_paid', 'purchased_at']
@@ -10,8 +12,10 @@ class CoursePurchaseSerializer(serializers.ModelSerializer):
     def validate(self, data):
         user = self.context['request'].user
         course = data['course']
+
         if CoursePurchase.objects.filter(student=user, course=course).exists():
-            raise serializers.ValidationError("Course already purchased.")
+            raise serializers.ValidationError("Course already purchased or enrolled.")
+        
         if not course.is_active:
             raise serializers.ValidationError("Course is inactive.")
         return data

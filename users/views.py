@@ -13,7 +13,7 @@ from .serializers import RegisterSerializer, LoginSerializer,CustomTokenObtainPa
 from .permissions import IsInstructorUser
 from .tasks import send_otp_email_task
 
-from courses.models import Enrollment,Course,LessonProgress
+from courses.models import Course,LessonProgress
 from courses.serializers import AdminCourseSerializer
 from quiz.models import QuizSubmission,Quiz
 from payment.models import CoursePurchase
@@ -139,7 +139,7 @@ class StudentDashboardView(APIView):
             }
 
         # Fetch enrolled courses
-        enrollments = Enrollment.objects.filter(student=user)
+        enrollments = CoursePurchase.objects.filter(student=user)
         total_courses = enrollments.count()
 
         # Course progress

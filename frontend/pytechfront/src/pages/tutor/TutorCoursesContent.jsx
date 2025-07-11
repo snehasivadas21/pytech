@@ -20,24 +20,29 @@ const InstructorCourseContent = () => {
   const token = localStorage.getItem("accessToken");
 
   useEffect(() => {
+    if (!id || id === "undefined") return ;
     fetchModules();
-  }, []);
+  }, [id]);
 
   const fetchModules = async () => {
-    const res = await axiosInstance.get(`/courses/modules/?course=${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setModules(res.data);
-
-    const lessonMap = {};
-    for (let mod of res.data) {
-      const lres = await axiosInstance.get(`/courses/lessons/?module=${mod.id}`, {
+    try {
+      const res = await axiosInstance.get(`/courses/modules/?course=${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      lessonMap[mod.id] = lres.data;
+      setModules(res.data);
+
+      const lessonMap = {};
+      for (let mod of res.data) {
+        const lres = await axiosInstance.get(`/courses/lessons/?module=${mod.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        lessonMap[mod.id] = lres.data;
+      }
+      setLessonsMap(lessonMap);
+    } catch (error) {
+      console.error("Error fetching modules or lessons:",error)
     }
-    setLessonsMap(lessonMap);
-  };
+  };  
 
   const handleAddModule = () => {
     setSelectedModule(null);
@@ -57,7 +62,8 @@ const InstructorCourseContent = () => {
         ? `/courses/modules/${mid}/`
         : "/courses/modules/";
       const method = mid ? axiosInstance.put : axiosInstance.post;
-      const payload = { ...data, course: mid ? undefined : id };
+      const payload = { ...data };
+      if (!mid) payload.course = id;
       await method(url, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -100,6 +106,9 @@ const InstructorCourseContent = () => {
         ? `/courses/lessons/${lid}/`
         : "/courses/lessons/";
       const method = lid ? axiosInstance.put : axiosInstance.post;
+
+      const payload = { ...data };
+      if (!lid) payload.module = currentModuleId;
 
       await method(url, data, {
         headers: { Authorization: `Bearer ${token}` },
@@ -161,7 +170,9 @@ const InstructorCourseContent = () => {
             <ul className="list-disc ml-6">
               {lessonsMap[mod.id]?.map((lesson) => (
                 <li key={lesson.id} className="flex justify-between items-center">
-                  <span>{lesson.title} ({lesson.content_type})</span>
+                  <span>
+                      {lesson.title} ({lesson.content_type}) {lesson.is_preview && <em className="text-yellow-600">[Preview]</em>}
+                  </span>
                   <div className="space-x-2">
                     <button
                       onClick={() => handleEditLesson(mod.id, lesson)}

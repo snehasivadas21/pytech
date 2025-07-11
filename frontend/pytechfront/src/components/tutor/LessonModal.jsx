@@ -1,30 +1,50 @@
 import { useState, useEffect } from "react";
 
-const LessonModal = ({ show, onClose, onSubmit, lessonData = null, moduleId, mode = "Add" }) => {
+const LessonModal = ({
+  show,
+  onClose,
+  onSubmit,
+  lessonData = null,
+  moduleId,
+  mode = "Add",
+}) => {
   const [formData, setFormData] = useState({
     title: "",
-    content: "",
     content_type: "video",
+    content_url: "",
+    order: 1,
+    is_preview: false,
+    is_active: true,
   });
 
   useEffect(() => {
     if (lessonData) {
       setFormData({
-        title: lessonData.title,
-        content: lessonData.content,
-        content_type: lessonData.content_type,
+        title: lessonData.title || "",
+        content_type: lessonData.content_type || "video",
+        content_url: lessonData.content_url || "",
+        order: lessonData.order || 1,
+        is_preview: lessonData.is_preview || false,
+        is_active: lessonData.is_active ?? true,
       });
     }
   }, [lessonData]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({ ...formData, module: moduleId }, lessonData?.id);
+    const payload = {
+      ...formData,
+      module: moduleId,
+    };
+    onSubmit(payload, lessonData?.id || null);
   };
 
   if (!show) return null;
@@ -42,14 +62,7 @@ const LessonModal = ({ show, onClose, onSubmit, lessonData = null, moduleId, mod
             className="w-full border px-3 py-2 rounded"
             required
           />
-          <textarea
-            name="content"
-            value={formData.content}
-            onChange={handleChange}
-            placeholder="Lesson Content or Video URL"
-            className="w-full border px-3 py-2 rounded"
-            required
-          />
+
           <select
             name="content_type"
             value={formData.content_type}
@@ -58,7 +71,46 @@ const LessonModal = ({ show, onClose, onSubmit, lessonData = null, moduleId, mod
           >
             <option value="video">Video</option>
             <option value="text">Text</option>
+            <option value="quiz">Quiz</option>
           </select>
+
+          <input
+            name="content_url"
+            value={formData.content_url}
+            onChange={handleChange}
+            placeholder="Content URL (video link or text ID)"
+            className="w-full border px-3 py-2 rounded"
+          />
+
+          <input
+            type="number"
+            name="order"
+            value={formData.order}
+            onChange={handleChange}
+            placeholder="Order"
+            className="w-full border px-3 py-2 rounded"
+          />
+
+          <div className="flex items-center space-x-4">
+            <label className="flex items-center space-x-2 text-sm">
+              <input
+                type="checkbox"
+                name="is_preview"
+                checked={formData.is_preview}
+                onChange={handleChange}
+              />
+              <span>Preview</span>
+            </label>
+            <label className="flex items-center space-x-2 text-sm">
+              <input
+                type="checkbox"
+                name="is_active"
+                checked={formData.is_active}
+                onChange={handleChange}
+              />
+              <span>Active</span>
+            </label>
+          </div>
 
           <div className="flex justify-end space-x-2">
             <button

@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Layers } from "lucide-react";
+import { LayoutDashboard, Layers, Layers2 } from "lucide-react";
 
 const navLinks = [
   { name: "Dashboard", icon: <LayoutDashboard size={18} />, path: "/tutor/dashboard" },

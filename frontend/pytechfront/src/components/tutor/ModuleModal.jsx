@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 const ModuleModal = ({ show, onClose, onSubmit, mode = "Add", moduleData = null }) => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    order: 0,
+    order: 1,
+    is_active: true,
   });
 
   useEffect(() => {
@@ -12,25 +13,26 @@ const ModuleModal = ({ show, onClose, onSubmit, mode = "Add", moduleData = null 
       setFormData({
         title: moduleData.title || "",
         description: moduleData.description || "",
-        order: moduleData.order || 0,
+        order: moduleData.order || 1,
+        is_active: moduleData.is_active ?? true,
       });
     }
   }, [moduleData]);
 
-  if (!show) return null;
-
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData, moduleData?.id || null); // if edit, send id
+    onSubmit(formData, moduleData?.id || null);
   };
+
+  if (!show) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/30">
@@ -45,6 +47,7 @@ const ModuleModal = ({ show, onClose, onSubmit, mode = "Add", moduleData = null 
             className="w-full border px-3 py-2 rounded"
             required
           />
+
           <textarea
             name="description"
             value={formData.description}
@@ -52,6 +55,7 @@ const ModuleModal = ({ show, onClose, onSubmit, mode = "Add", moduleData = null 
             placeholder="Module Description"
             className="w-full border px-3 py-2 rounded"
           />
+
           <input
             type="number"
             name="order"
@@ -59,7 +63,19 @@ const ModuleModal = ({ show, onClose, onSubmit, mode = "Add", moduleData = null 
             onChange={handleChange}
             placeholder="Order (e.g., 1, 2...)"
             className="w-full border px-3 py-2 rounded"
+            min={1}
           />
+
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="is_active"
+              checked={formData.is_active}
+              onChange={handleChange}
+            />
+            <span>Active</span>
+          </label>
+
           <div className="flex justify-end space-x-2">
             <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
               Cancel

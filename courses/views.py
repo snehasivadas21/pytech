@@ -1,7 +1,7 @@
 from rest_framework import viewsets,permissions,serializers
-from .models import (Course,CourseCategory,Module,Lesson,Enrollment,LessonProgress,CourseCertificate,LessonResource,CourseReview)
+from .models import (Course,CourseCategory,Module,Lesson,LessonProgress,CourseCertificate,LessonResource,CourseReview)
 from .serializers import (AdminCourseSerializer,InstructorCourseSerializer,CourseCategorySerializer,
-ModuleSerializer,LessonSerializer,EnrollmentSerializer,LessonProgressSerializer,CertificateSerializer,LessonResourceSerializer,
+ModuleSerializer,LessonSerializer,LessonProgressSerializer,CertificateSerializer,LessonResourceSerializer,
 CourseReviewSerializer)
 
 from users.permissions import IsInstructorUser,IsAdminUser,IsStudentUser
@@ -70,19 +70,6 @@ class LessonViewSet(viewsets.ModelViewSet):
         instance.is_deleted = True
         instance.save()
         return Response({'message': 'Deleted successfully (soft delete)'}, status=status.HTTP_204_NO_CONTENT)
-
-class EnrollmentViewSet(viewsets.ModelViewSet):
-    queryset = Enrollment.objects.all()
-    serializer_class = EnrollmentSerializer
-    permission_classes = [permissions.IsAuthenticated,IsStudentUser]
-
-    def perform_create(self, serializer):
-        if Enrollment.objects.filter(student=self.request.user, course=serializer.validated_data['course']).exists():
-            raise serializers.ValidationError("You are already enrolled in this course.")
-        serializer.save(student=self.request.user)
-
-    def get_queryset(self):
-        return self.queryset.filter(student = self.request.user)
     
 class LessonProgressViewSet(viewsets.ModelViewSet):
     queryset = LessonProgress.objects.all()

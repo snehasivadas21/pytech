@@ -31,6 +31,7 @@ import AdminCategories from "./pages/admin/AdminCategories";
 import TutorLayout from "./components/tutor/TutorLayout";
 import TutorDashboard from "./pages/tutor/TutorDashboard";
 import TutorCourses from "./pages/tutor/TutorCourses";
+import TutorCoursesContent from "./pages/tutor/TutorCoursesContent";
 
 // Routes
 import PrivateRoute from "./routes/PrivateRoute";
@@ -93,6 +94,7 @@ function App() {
         <Route index element={<TutorDashboard />} />
         <Route path="dashboard" element={<TutorDashboard />} />
         <Route path="courses" element={<TutorCourses />} />
+        <Route path="courses/:id/content" element={<TutorCoursesContent/>}/>
       </Route>
 
       {/* Catch All */}
