@@ -3,7 +3,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 // Layouts & Pages
-import Layout from "./components/Layout";
+import Layout from "./components/user/Layout";
 import Home from "./pages/user/Home";
 import Login from "./pages/user/Login";
 import Register from "./pages/user/Register";

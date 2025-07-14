@@ -14,6 +14,7 @@ from pathlib import Path
 from datetime import timedelta
 from decouple import config
 from django.conf import settings
+import os
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -132,13 +133,14 @@ WSGI_APPLICATION = 'pytech.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT'),
+        'NAME': os.getenv('POSTGRES_DB'),
+        'USER': os.getenv('POSTGRES_USER'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+        'HOST': os.getenv('POSTGRES_HOST', 'db'), 
+        'PORT': os.getenv('POSTGRES_PORT', 5432),
     }
 }
+
 
 AUTH_USER_MODEL = 'users.CustomUser'
 

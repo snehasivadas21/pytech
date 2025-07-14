@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import (Course,CourseCategory,Module, Lesson,LessonProgress,
 CourseCertificate,LessonResource,CourseReview)
 from payment.models import CoursePurchase
+from quiz.serializers import QuizSerializer
 
 class CourseCategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -49,15 +50,30 @@ class AdminCourseSerializer(serializers.ModelSerializer):
         fields='__all__'   
         extra_kwargs = {
             'slug': {'read_only': True}
-        }      
+        }     
+
+class LessonResourceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LessonResource  
+        fields =['id','lesson','title','file','uploaded_at']
+
+    def validate_file(self, file):
+        if file.size > 10 * 1024 * 1024:  
+            raise serializers.ValidationError("File size too large (max 10MB).")
+        if not file.name.endswith(('.pdf', '.docx', '.pptx')):
+            raise serializers.ValidationError("Unsupported file type.")
+        return file
+             
 
 class LessonSerializer(serializers.ModelSerializer):
+    resources = LessonResourceSerializer(many=True,read_only=True)
     class Meta:
         model = Lesson
         fields = '__all__'
 
 class ModuleSerializer(serializers.ModelSerializer):
     lessons = LessonSerializer(many=True, read_only=True)
+    quiz = QuizSerializer(many=True,read_only=True)
 
     class Meta:
         model = Module
@@ -76,18 +92,6 @@ class CertificateSerializer(serializers.ModelSerializer):
         model = CourseCertificate
         fields = ['id', 'course', 'course_title', 'issued_at', 'certificate_file']
 
-class LessonResourceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = LessonResource  
-        fields =['id','lesson','title','file','uploaded_at']
-
-    def validate_file(self, file):
-        if file.size > 10 * 1024 * 1024:  
-            raise serializers.ValidationError("File size too large (max 10MB).")
-        if not file.name.endswith(('.pdf', '.docx', '.pptx')):
-            raise serializers.ValidationError("Unsupported file type.")
-        return file
-    
 class CourseReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = CourseReview

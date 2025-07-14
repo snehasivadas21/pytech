@@ -3,6 +3,7 @@ from django.conf import settings
 from django.utils.text import slugify
 from django.core.validators import MinValueValidator, MaxValueValidator
 from cloudinary.models import CloudinaryField
+from cloudinary_storage.storage import MediaCloudinaryStorage
 
 class CourseCategory(models.Model):
     name = models.CharField(max_length=255)
@@ -140,7 +141,7 @@ class CourseCertificate(models.Model):
 class LessonResource(models.Model):
     lesson = models.ForeignKey(Lesson,on_delete=models.CASCADE,related_name='resources')
     title = models.CharField(max_length=255)
-    file = models.FileField(upload_to='lesson_resources/')
+    file = models.FileField(storage=MediaCloudinaryStorage(),upload_to='lesson_resources/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

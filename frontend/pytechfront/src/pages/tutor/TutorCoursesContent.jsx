@@ -4,6 +4,8 @@ import axiosInstance from "../../api/axiosInstance";
 
 import ModuleModal from "../../components/tutor/ModuleModal";
 import LessonModal from "../../components/tutor/LessonModal";
+import QuizModal from "../../components/tutor/QuizModal";
+
 
 const InstructorCourseContent = () => {
   const { id } = useParams(); 
@@ -16,6 +18,9 @@ const InstructorCourseContent = () => {
   const [showLessonModal, setShowLessonModal] = useState(false);
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [currentModuleId, setCurrentModuleId] = useState(null);
+
+  const [showQuizModal,setShowQuizModal] = useState(false)
+  const [currentQuizModuleId,setCurrentQuizModuleId]=useState(null)
 
   const token = localStorage.getItem("accessToken");
 
@@ -132,6 +137,11 @@ const InstructorCourseContent = () => {
     }
   };
 
+  const handleAddQuiz = (moduleId) => {
+    setCurrentQuizModuleId(moduleId);
+    setShowQuizModal(true);
+  }
+
   return (
     <div className="p-6">
       <h2 className="text-2xl font-bold text-purple-700 mb-4">Manage Course Content</h2>
@@ -173,6 +183,18 @@ const InstructorCourseContent = () => {
                   <span>
                       {lesson.title} ({lesson.content_type}) {lesson.is_preview && <em className="text-yellow-600">[Preview]</em>}
                   </span>
+                  {lesson.resources?.length > 0 && (
+                    <ul className="ml-6 mt-1 text-sm text-gray-600">
+                      {lesson.resources.map((res)=>(
+                        <li key={res.id}>
+                          {res.title} - {" "}
+                          <a href={res.file} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                            Download
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                   <div className="space-x-2">
                     <button
                       onClick={() => handleEditLesson(mod.id, lesson)}
@@ -196,6 +218,12 @@ const InstructorCourseContent = () => {
             >
               + Add Lesson
             </button>
+            <button
+              onClick={()=>handleAddQuiz(mod.id)}
+              className="mt-2 ml-3 px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700" 
+            >
+              + Add Quiz
+            </button>
           </div>
         </div>
       ))}
@@ -216,6 +244,14 @@ const InstructorCourseContent = () => {
         moduleId={currentModuleId}
         mode={modalMode}
       />
+
+      <QuizModal
+       show = {showQuizModal}
+       onClose = {()=>setShowQuizModal(false)}
+       moduleId = {currentQuizModuleId}
+       onSaved = {fetchModules}
+       />
+
     </div>
   );
 };

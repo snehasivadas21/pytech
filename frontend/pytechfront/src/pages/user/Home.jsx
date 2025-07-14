@@ -1,8 +1,8 @@
-import Banner from "../../components/Banner"
-import CourseSection from "../../components/CourseSection";
-import Achievements from "../../components/Achievements";
-import Features from "../../components/Features";
-import Testimonials from "../../components/Testimonials";
+import Banner from "../../components/user/Banner"
+import CourseSection from "../../components/user/CourseSection";
+import Achievements from "../../components/user/Achievements";
+import Features from "../../components/user/Features";
+import Testimonials from "../../components/user/Testimonials";
 
 const Home = () => {
   return (

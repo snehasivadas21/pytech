@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import axiosInstance from "../../api/axiosInstance";
 
 const LessonModal = ({
   show,
@@ -16,6 +17,9 @@ const LessonModal = ({
     is_preview: false,
     is_active: true,
   });
+
+  const [resourceFiles,setResourceFiles] = useState([]);
+  const token = localStorage.getItem("accessToken")
 
   useEffect(() => {
     if (lessonData) {
@@ -38,13 +42,54 @@ const LessonModal = ({
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleFileChange = (e) => {
+    setResourceFiles(Array.from(e.target.files))
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     const payload = {
       ...formData,
       module: moduleId,
     };
-    onSubmit(payload, lessonData?.id || null);
+
+    try {
+      const url = lessonData
+        ? `/courses/lessons/${lessonData.id}/`
+        : "/courses/lessons/";
+      const method = lessonData ? axiosInstance.put : axiosInstance.post;
+
+      const lessonRes = await method(url, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const lessonId = lessonData?.id || lessonRes.data.id;
+
+      // Upload resources if any
+      if (resourceFiles.length > 0) {
+        const uploadPromises = resourceFiles.map((file) => {
+          const formData = new FormData();
+          formData.append("lesson", lessonId);
+          formData.append("title", file.name);
+          formData.append("file", file);
+
+          return axiosInstance.post("/courses/lesson-resources/", formData, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          });
+        });
+
+        await Promise.all(uploadPromises);
+      }
+
+      setResourceFiles([]);
+      onClose();
+    } catch (err) {
+      console.error("Error saving lesson or resources:", err);
+    }
   };
 
   if (!show) return null;
@@ -71,16 +116,32 @@ const LessonModal = ({
           >
             <option value="video">Video</option>
             <option value="text">Text</option>
-            <option value="quiz">Quiz</option>
           </select>
 
           <input
             name="content_url"
             value={formData.content_url}
             onChange={handleChange}
-            placeholder="Content URL (video link or text ID)"
+            placeholder={
+              formData.content_type === "video"
+                ? "Video URL"
+                : "Text or Link to content"
+            }
             className="w-full border px-3 py-2 rounded"
           />
+
+          <div>
+            <label className="block font-medium text-sm mb-1">
+              Upload Resources (PDF, DOCX, PPTX):
+            </label>
+            <input
+              type="file"
+              multiple
+              accept=".pdf,.docx,.pptx"
+              onChange={handleFileChange}
+              className="w-full border px-3 py-2 rounded"
+            />
+          </div>
 
           <input
             type="number"
